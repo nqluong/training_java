@@ -1,7 +1,5 @@
 # Project Structure
 
-This project contains Java core training materials, organized by topic. Below is the folder structure under `src/`:
-
 ```
 JavaCoreBasic/
 ├── HandleException/
@@ -34,4 +32,4 @@ JavaCoreBasic/
     └── String.pdf
 ```
 
-Each topic folder contains relevant Java source files and documents (DOCX, PDF) for study and reference.
+
