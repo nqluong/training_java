@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="CopilotDiffPersistence">
+    <option name="pendingDiffs">
+      <map>
+        <entry key="$PROJECT_DIR$/README.md">
+          <value>
+            <PendingDiffInfo>
+              <option name="filePath" value="$PROJECT_DIR$/README.md" />
+              <option name="updatedContent" value="# Project Structure&#10;&#10;This project contains Java core training materials, organized by topic. Below is the folder structure under `src/`:&#10;&#10;```&#10;JavaCoreBasic/&#10;├── HandleException/&#10;│   ├── Handle Exception.docx&#10;│   └── Handle Exception.pdf&#10;├── Memory/&#10;│   ├── Memory.docx&#10;│   └── Memory.pdf&#10;├── OOP/&#10;│   ├── Main.java&#10;│   ├── OOP.docx&#10;│   ├── OOP.pdf&#10;│   ├── interfaces/&#10;│   │   └── Movable.java&#10;│   └── vehicles/&#10;│       ├── Car.java&#10;│       ├── Motorcycle.java&#10;│       └── Vehicle.java&#10;├── PrimitiveAndObjectDataType/&#10;│   ├── Main.java&#10;│   ├── PrimitiveAndObjectDataType.docx&#10;│   ├── PrimitiveAndObjectDataType.java&#10;│   └── PrimitiveAndObjectDataType.pdf&#10;├── static&amp;final/&#10;│   ├── static&amp;final.docx&#10;│   └── static&amp;final.pdf&#10;└── String/&#10;    ├── Main.java&#10;    ├── String.docx&#10;    └── String.pdf&#10;```&#10;&#10;Each topic folder contains relevant Java source files and documents (DOCX, PDF) for study and reference." />
+            </PendingDiffInfo>
+          </value>
+        </entry>
+      </map>
+    </option>
+  </component>
+</project>
