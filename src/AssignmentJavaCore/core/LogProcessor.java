@@ -12,7 +12,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.*;
@@ -27,6 +26,12 @@ public class LogProcessor implements AutoCloseable{
     private AtomicLong finishedConsumers = new AtomicLong(0);
     private volatile boolean closed = false;
 
+    /**
+     * Khởi tạo LogProcessor với parser và số luồng consumer mong muốn.
+     *
+     * @param parser bộ parser để phân tích cú pháp log
+     * @param threadCount số lượng consumer xử lý log song song
+     */
     public LogProcessor(LogParser parser, int threadCount) {
         this.parser = parser;
         this.threadCount = threadCount;
@@ -36,12 +41,25 @@ public class LogProcessor implements AutoCloseable{
     public LogProcessor(LogParser parser) {
         this(parser, Runtime.getRuntime().availableProcessors());
     }
+
+    /**
+     * Xử lý file log với filter và ghi kết quả ra file.
+     * Phương thức này kiểm tra trạng thái processor trước khi gọi
+     * và đảm bảo thread-safe thông qua synchronized.
+     *
+     * @param logFilePath đường dẫn file log đầu vào
+     * @param filter điều kiện lọc log
+     * @param outputFilePath đường dẫn file log kết quả
+     * @return {@SearchResult} chứa thông tin thống kê sau xử lý
+     * @throws IOException nếu không tìm thấy file hoặc lỗi đọc/ghi
+     * @throws InterruptedException nếu luồng bị gián đoạn
+     * @throws ExecutionException nếu có lỗi trong khi xử lý song song
+     */
     public SearchResult process(String logFilePath, LogFilter filter, String outputFilePath)
             throws IOException, InterruptedException, ExecutionException {
 
         // Check if processor is closed
         if (closed) {
-            System.out.println("LogProcessor is closed");
             throw new IllegalStateException("LogProcessor has been closed");
         }
 
@@ -54,6 +72,16 @@ public class LogProcessor implements AutoCloseable{
         }
     }
 
+    /**
+     * Thực hiện xử lý log chính (Producer-Consumers-Writer).
+     * @param logFilePath đường dẫn file log
+     * @param filter điều kiện lọc log
+     * @param outputFilePath file kết quả
+     * @return {@SearchResult} kết quả tìm kiếm
+     * @throws IOException nếu file không tồn tại hoặc lỗi ghi
+     * @throws InterruptedException nếu luồng bị gián đoạn
+     * @throws ExecutionException nếu có lỗi trong khi thực thi task
+     */
     public SearchResult doProcess(String logFilePath, LogFilter filter, String outputFilePath)
             throws IOException, InterruptedException, ExecutionException {
 
@@ -114,6 +142,7 @@ public class LogProcessor implements AutoCloseable{
         );
     }
 
+    //Tạo một consumer xử lý log
     private Callable<Void> createConsumer(
             BlockingQueue<String> readQueue,
             LogFilter filter,
@@ -153,6 +182,7 @@ public class LogProcessor implements AutoCloseable{
         };
     }
 
+    //Tạo một writer ghi kết quả ra file
     private Callable<Void> createWriter(BlockingQueue<String> writeQueue, String outputPath) {
         return () -> {
             Path outPath = Paths.get(outputPath);
@@ -182,6 +212,7 @@ public class LogProcessor implements AutoCloseable{
         };
     }
 
+    // Đóng LogProcessor và giải phóng tài nguyên sau 60 giây
     @Override
     public void close() throws Exception {
         executorService.shutdown();

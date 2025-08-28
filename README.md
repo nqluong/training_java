@@ -17,9 +17,6 @@ src/
 │   ├── filters/
 │   │   ├── DefaultLogFilter.java
 │   │   └── LogFilter.java
-│   ├── interfaces/
-│   │   ├── LogSearchEngine.java
-│   │   └── SearchResultExporter.java
 │   ├── io/
 │   │   ├── LogReader.java
 │   │   └── LogWriter.java

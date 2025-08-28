@@ -7,3 +7,5 @@
 - Áp dụng filter theo thứ tự: level -> timestamp -> message (dừng luôn nếu có điều kiện không match)
 - Tổng hợp kết quả từ các consumer
 - Ghi ra file output nếu người dùng lựa chọn
+
+[Producer: LogReader] ---> [readQueue] ---> [Consumers: parse + filter] ---> [writeQueue] ---> [Writer]
