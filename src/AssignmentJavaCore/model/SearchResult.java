@@ -1,8 +1,5 @@
 package AssignmentJavaCore.model;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
 
 public class SearchResult {
     private long executionTime;

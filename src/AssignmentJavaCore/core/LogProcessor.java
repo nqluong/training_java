@@ -1,5 +1,6 @@
 package AssignmentJavaCore.core;
 
+import AssignmentJavaCore.config.AppConfig;
 import AssignmentJavaCore.filters.LogFilter;
 import AssignmentJavaCore.io.LogReader;
 import AssignmentJavaCore.model.LogEntry;
@@ -19,9 +20,6 @@ import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.IntStream;
 
 public class LogProcessor implements AutoCloseable{
-
-    private static final String POISON_PILL = "POISON_PILL_UNIQUE_MARKER";
-    private static final int DEFAULT_QUEUE_SIZE = 10_000;
 
     private  LogParser parser;
     private  int threadCount;
@@ -68,8 +66,8 @@ public class LogProcessor implements AutoCloseable{
             throw new IOException("Log file not found: " + logFilePath);
         }
 
-        BlockingQueue<String> readQueue = new LinkedBlockingQueue<>(DEFAULT_QUEUE_SIZE);
-        BlockingQueue<String> writeQueue = new LinkedBlockingQueue<>(DEFAULT_QUEUE_SIZE);
+        BlockingQueue<String> readQueue = new LinkedBlockingQueue<>(AppConfig.DEFAULT_QUEUE_SIZE);
+        BlockingQueue<String> writeQueue = new LinkedBlockingQueue<>(AppConfig.DEFAULT_QUEUE_SIZE);
         AtomicLong processedLines = new AtomicLong(0);
         AtomicLong matchingCount = new AtomicLong(0);
 
@@ -78,7 +76,7 @@ public class LogProcessor implements AutoCloseable{
         Future<Void> writerFuture = executorService.submit(writerTask);
         // Producer task
         Future<?> producerFuture = executorService.submit(
-                new LogReader(path, readQueue, POISON_PILL, threadCount)
+                new LogReader(path, readQueue, AppConfig.POISON_PILL, threadCount)
         );
 
         // Consumer tasks
@@ -126,7 +124,7 @@ public class LogProcessor implements AutoCloseable{
             try {
                 while (true) {
                     String line = readQueue.take();
-                    if (POISON_PILL.equals(line)) {
+                    if (AppConfig.POISON_PILL.equals(line)) {
                         break;
                     }
 
@@ -145,7 +143,7 @@ public class LogProcessor implements AutoCloseable{
                 long finished = finishedConsumers.incrementAndGet();
                 if (finished == threadCount) {
                     try {
-                        writeQueue.put(POISON_PILL);
+                        writeQueue.put(AppConfig.POISON_PILL);
                     } catch (InterruptedException e) {
                         Thread.currentThread().interrupt();
                     }
@@ -170,7 +168,7 @@ public class LogProcessor implements AutoCloseable{
             try (BufferedWriter writer = Files.newBufferedWriter(outPath)) {
                 while (true) {
                     String line = writeQueue.take();
-                    if (POISON_PILL.equals(line)) {
+                    if (AppConfig.POISON_PILL.equals(line)) {
                         break;
                     }
                     writer.write(line);

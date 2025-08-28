@@ -1,5 +1,7 @@
 package AssignmentJavaCore.io;
 
+import AssignmentJavaCore.config.AppConfig;
+
 import java.io.BufferedWriter;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -7,10 +9,7 @@ import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.concurrent.BlockingQueue;
 
-
-
 public class LogWriter implements Runnable{
-    private static final String POISON_PILL = "POISON_PILL_UNIQUE_MARKER";
     private  BlockingQueue<String> queue;
     private  String outputPath;
     private  boolean append;
@@ -32,7 +31,7 @@ public class LogWriter implements Runnable{
         try (BufferedWriter writer = Files.newBufferedWriter(Paths.get(outputPath), options)) {
             while (true) {
                 String line = queue.take();
-                if (POISON_PILL.equals(line)) {
+                if (AppConfig.POISON_PILL.equals(line)) {
                     break;
                 }
                 writer.write(line);

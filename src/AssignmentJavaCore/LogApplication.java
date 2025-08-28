@@ -1,5 +1,6 @@
 package AssignmentJavaCore;
 
+import AssignmentJavaCore.config.AppConfig;
 import AssignmentJavaCore.core.LogProcessor;
 import AssignmentJavaCore.exporters.LogExporter;
 import AssignmentJavaCore.exporters.TextLogExporter;
@@ -19,12 +20,8 @@ import java.util.concurrent.ExecutionException;
 
 
 public class LogApplication {
-    private static final String DEFAULT_LOG_PATH = "src/AssignmentJavaCore/app.log";
-    private static final String OUTPUT_DIR = "src/AssignmentJavaCore/output/";
-    private static final String TIMESTAMP_FORMAT = "yyyy-MM-dd HH:mm:ss";
-    private static final DateTimeFormatter INPUT_FORMATTER =
-            DateTimeFormatter.ofPattern(TIMESTAMP_FORMAT);
 
+    private static final String OUTPUT_DIR = "src/AssignmentJavaCore/output/";
     private LogProcessor processor;
     private LogExporter exporter;
     private LogParser parser;
@@ -112,10 +109,10 @@ public class LogApplication {
         LogFilter filter = new DefaultLogFilter(criteria);
 
         String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss"));
-        String outputFileName = "search_by_level_" + level.toLowerCase() + ".txt";
+        String outputFileName = "search_by_level_" + level.toLowerCase() + timestamp + ".txt";
         String fullOutputPath = OUTPUT_DIR + outputFileName;
 
-        SearchResult result = processor.process(DEFAULT_LOG_PATH, filter, fullOutputPath);
+        SearchResult result = processor.process(AppConfig.DEFAULT_LOG_PATH, filter, fullOutputPath);
         processResults(result, filter.getDescription(), "search_by_level_" + level.toLowerCase());
     }
 
@@ -159,7 +156,7 @@ public class LogApplication {
         String outputFileName = "search_by_time_range_" + timestamp + ".txt";
         String fullOutputPath = OUTPUT_DIR + outputFileName;
 
-        SearchResult result = processor.process(DEFAULT_LOG_PATH, filter, fullOutputPath);
+        SearchResult result = processor.process(AppConfig.DEFAULT_LOG_PATH, filter, fullOutputPath);
         processResults(result, filter.getDescription(), "search_by_time_range");
     }
 
@@ -177,7 +174,7 @@ public class LogApplication {
         String outputFileName = "search_by_message_" + sanitizeFilename(keyword) + ".txt";
         String fullOutputPath = OUTPUT_DIR + outputFileName;
 
-        SearchResult result = processor.process(DEFAULT_LOG_PATH, filter, fullOutputPath);
+        SearchResult result = processor.process(AppConfig.DEFAULT_LOG_PATH, filter, fullOutputPath);
         processResults(result, filter.getDescription(), "search_by_message_" + sanitizeFilename(keyword));
     }
 
@@ -230,7 +227,7 @@ public class LogApplication {
         String outputFileName = "combined_search_" + timestamp + ".txt";
         String fullOutputPath = OUTPUT_DIR + outputFileName;
 
-        SearchResult result = processor.process(DEFAULT_LOG_PATH, filter, fullOutputPath);
+        SearchResult result = processor.process(AppConfig.DEFAULT_LOG_PATH, filter, fullOutputPath);
         processResults(result, filter.getDescription(), "combined_search");
     }
 
@@ -267,7 +264,7 @@ public class LogApplication {
 
     private Optional<LocalDateTime> parseTimestamp(String timestampStr) {
         try {
-            return Optional.of(LocalDateTime.parse(timestampStr, INPUT_FORMATTER));
+            return Optional.of(LocalDateTime.parse(timestampStr, AppConfig.DATE_TIME_FORMATTER));
         } catch (DateTimeParseException e) {
             return Optional.empty();
         }

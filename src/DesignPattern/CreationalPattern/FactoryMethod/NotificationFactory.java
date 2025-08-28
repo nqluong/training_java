@@ -1,9 +1,11 @@
-//package DesignPattern.CreationalPattern.FactoryMethod;
+package DesignPattern.CreationalPattern.FactoryMethod;//package DesignPattern.CreationalPattern.FactoryMethod;
 //
 //
-////3. Create
-//public abstract NotificationFactory {
-//
-//    public abstract Notification createNotification();
-//}
 
+import DesignPattern.CreationalPattern.FactoryMethod.Notification;
+
+////3. Creator - NotificationFactory
+public abstract class NotificationFactory {
+
+    public abstract Notification createNotification();
+}

@@ -4,11 +4,11 @@ import java.time.LocalDateTime;
 import java.util.Objects;
 
 public class LogEntry {
-    private final LocalDateTime timestamp;
-    private final String level;
-    private final String service;
-    private final String message;
-    private final String originalLine;
+    private LocalDateTime timestamp;
+    private String level;
+    private String service;
+    private String message;
+    private String originalLine;
 
     public LogEntry(LocalDateTime timestamp, String level, String service, String message, String originalLine) {
         this.timestamp = Objects.requireNonNull(timestamp, "Timestamp cannot be null");
