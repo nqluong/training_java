@@ -26,6 +26,8 @@ public class LogProcessor implements AutoCloseable{
     private  LogParser parser;
     private  int threadCount;
     private ExecutorService executorService;
+    private AtomicLong finishedConsumers = new AtomicLong(0);
+    private volatile boolean closed = false;
 
     public LogProcessor(LogParser parser, int threadCount) {
         this.parser = parser;
@@ -36,13 +38,33 @@ public class LogProcessor implements AutoCloseable{
     public LogProcessor(LogParser parser) {
         this(parser, Runtime.getRuntime().availableProcessors());
     }
-
     public SearchResult process(String logFilePath, LogFilter filter, String outputFilePath)
             throws IOException, InterruptedException, ExecutionException {
+
+        // Check if processor is closed
+        if (closed) {
+            System.out.println("LogProcessor is closed");
+            throw new IllegalStateException("LogProcessor has been closed");
+        }
+
+        if (executorService.isShutdown() || executorService.isTerminated()) {
+            executorService = Executors.newFixedThreadPool(threadCount + 2);
+        }
+
+        synchronized (this) {
+            return doProcess(logFilePath, filter, outputFilePath);
+        }
+    }
+
+    public SearchResult doProcess(String logFilePath, LogFilter filter, String outputFilePath)
+            throws IOException, InterruptedException, ExecutionException {
+
+        finishedConsumers.set(0);
+
         long searchStartTime = System.currentTimeMillis();
         Path path = Paths.get(Objects.requireNonNull(logFilePath));
 
-        if (!java.nio.file.Files.exists(path)) {
+        if (!Files.exists(path)) {
             throw new IOException("Log file not found: " + logFilePath);
         }
 
@@ -64,10 +86,26 @@ public class LogProcessor implements AutoCloseable{
                 .mapToObj(i -> executorService.submit(createConsumer(readQueue, filter, writeQueue, processedLines, matchingCount)))
                 .toList();
 
-        // Wait for completion
-        producerFuture.get();
-        for (Future<Void> future : consumerFutures) {
-            future.get();
+        try {
+            // Wait for completion
+            producerFuture.get();
+            for (Future<Void> future : consumerFutures) {
+                future.get();
+            }
+            writerFuture.get();
+
+        } catch (ExecutionException | InterruptedException e) {
+            // Cancel all running tasks
+            producerFuture.cancel(true);
+            consumerFutures.forEach(f -> f.cancel(true));
+            writerFuture.cancel(true);
+
+
+            readQueue.clear();
+            writeQueue.clear();
+
+            finishedConsumers.set(0);
+            throw e;
         }
 
         long searchEndTime = System.currentTimeMillis();
@@ -89,7 +127,6 @@ public class LogProcessor implements AutoCloseable{
                 while (true) {
                     String line = readQueue.take();
                     if (POISON_PILL.equals(line)) {
-                        writeQueue.put(POISON_PILL); // Signal writer to finish
                         break;
                     }
 
@@ -103,6 +140,16 @@ public class LogProcessor implements AutoCloseable{
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
                 throw new RuntimeException("Consumer error", e);
+            }finally {
+
+                long finished = finishedConsumers.incrementAndGet();
+                if (finished == threadCount) {
+                    try {
+                        writeQueue.put(POISON_PILL);
+                    } catch (InterruptedException e) {
+                        Thread.currentThread().interrupt();
+                    }
+                }
             }
             return null;
         };

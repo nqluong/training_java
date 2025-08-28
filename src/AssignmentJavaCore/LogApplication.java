@@ -76,21 +76,32 @@ public class LogApplication {
         System.out.println("3. Search by Message Content");
         System.out.println("4. Search by Combined Criteria");
         System.out.println("0. Exit");
-        System.out.print("Enter your choice: ");
     }
 
     private int getChoice() {
-        try {
-            return Integer.parseInt(scanner.nextLine().trim());
-        } catch (NumberFormatException e) {
-            return -1;
+        while (true) {
+            try {
+                System.out.print("Enter your choice: ");
+                String input = scanner.nextLine().trim();
+                if (input.isEmpty()) {
+                    continue; // Bỏ qua input rỗng
+                }
+                return Integer.parseInt(input);
+            } catch (NumberFormatException e) {
+                System.out.println("Please enter a valid number.");
+            }
         }
     }
 
-    private void searchByLevel() throws IOException, ExecutionException, InterruptedException {
-        System.out.print("Enter log level (INFO, WARN, ERROR, DEBUG): ");
-        String level = scanner.nextLine().trim();
+    private String getInput(String prompt) {
+        System.out.print(prompt);
+        String input = scanner.nextLine();
+        return input != null ? input.trim() : "";
+    }
 
+    private void searchByLevel() throws IOException, ExecutionException, InterruptedException {
+        String level = getInput("Enter log level (INFO, WARN, ERROR, DEBUG): ");
+        System.out.println("Searching for log level: " + level);
         if (level.isEmpty()) {
             System.out.println("Log level cannot be empty.");
             return;
@@ -100,6 +111,7 @@ public class LogApplication {
         criteria.setLevel(level);
         LogFilter filter = new DefaultLogFilter(criteria);
 
+        String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss"));
         String outputFileName = "search_by_level_" + level.toLowerCase() + ".txt";
         String fullOutputPath = OUTPUT_DIR + outputFileName;
 
@@ -109,11 +121,8 @@ public class LogApplication {
 
     private void searchByTimeRange() throws IOException, ExecutionException, InterruptedException {
         System.out.println("Enter time range (format: yyyy-MM-dd HH:mm:ss)");
-        System.out.print("Start time (press Enter to skip): ");
-        String startTimeStr = scanner.nextLine().trim();
-
-        System.out.print("End time (press Enter to skip): ");
-        String endTimeStr = scanner.nextLine().trim();
+        String startTimeStr = getInput("Start time (press Enter to skip): ");
+        String endTimeStr = getInput("End time (press Enter to skip): ");
 
         LocalDateTime startTime = null;
         LocalDateTime endTime = null;
@@ -145,6 +154,7 @@ public class LogApplication {
         criteria.setStartTime(startTime);
         criteria.setEndTime(endTime);
         LogFilter filter = new DefaultLogFilter(criteria);
+
         String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss"));
         String outputFileName = "search_by_time_range_" + timestamp + ".txt";
         String fullOutputPath = OUTPUT_DIR + outputFileName;
@@ -154,8 +164,7 @@ public class LogApplication {
     }
 
     private void searchByMessage() throws IOException, ExecutionException, InterruptedException {
-        System.out.print("Enter keyword to search in messages: ");
-        String keyword = scanner.nextLine().trim();
+        String keyword = getInput("Enter keyword to search in messages: ");
 
         if (keyword.isEmpty()) {
             System.out.println("Keyword cannot be empty.");
@@ -175,12 +184,11 @@ public class LogApplication {
     private void searchByCombinedCriteria() throws IOException, ExecutionException, InterruptedException {
         System.out.println("=== Combined Search ===");
         System.out.println("Leave any field empty to skip that filter");
+        String level = getInput("Log level (INFO, WARN, ERROR, DEBUG): ");
+        String startTimeStr = getInput("Start time (yyyy-MM-dd HH:mm:ss): ");
+        String endTimeStr = getInput("End time (yyyy-MM-dd HH:mm:ss): ");
+        String keyword = getInput("Message keyword: ");
 
-        System.out.print("Log level (INFO, WARN, ERROR, DEBUG): ");
-        String level = scanner.nextLine().trim();
-
-        System.out.print("Start time (yyyy-MM-dd HH:mm:ss): ");
-        String startTimeStr = scanner.nextLine().trim();
         LocalDateTime startTime = null;
         if (!startTimeStr.isEmpty()) {
             Optional<LocalDateTime> parsed = parseTimestamp(startTimeStr);
@@ -191,8 +199,6 @@ public class LogApplication {
             startTime = parsed.get();
         }
 
-        System.out.print("End time (yyyy-MM-dd HH:mm:ss): ");
-        String endTimeStr = scanner.nextLine().trim();
         LocalDateTime endTime = null;
         if (!endTimeStr.isEmpty()) {
             Optional<LocalDateTime> parsed = parseTimestamp(endTimeStr);
@@ -202,9 +208,6 @@ public class LogApplication {
             }
             endTime = parsed.get();
         }
-
-        System.out.print("Message keyword: ");
-        String keyword = scanner.nextLine().trim();
 
         SearchCriteria criteria = new SearchCriteria();
         if (!level.isEmpty()) {
