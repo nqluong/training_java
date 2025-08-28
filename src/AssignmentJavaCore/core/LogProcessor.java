@@ -58,7 +58,7 @@ public class LogProcessor implements AutoCloseable{
     public SearchResult process(String logFilePath, LogFilter filter, String outputFilePath)
             throws IOException, InterruptedException, ExecutionException {
 
-        // Check if processor is closed
+        // Kiểm tra trạng thái của LogProcessor
         if (closed) {
             throw new IllegalStateException("LogProcessor has been closed");
         }
@@ -99,21 +99,22 @@ public class LogProcessor implements AutoCloseable{
         AtomicLong processedLines = new AtomicLong(0);
         AtomicLong matchingCount = new AtomicLong(0);
 
-        // Start writer thread
+        // Bắt đầu ghi log với thread riêng
         Callable<Void> writerTask = createWriter(writeQueue, outputFilePath);
         Future<Void> writerFuture = executorService.submit(writerTask);
-        // Producer task
+
+        // Đọc log (Producer)
         Future<?> producerFuture = executorService.submit(
                 new LogReader(path, readQueue, AppConfig.POISON_PILL, threadCount)
         );
 
-        // Consumer tasks
+        // Xu lý log (Consumers), tạo nhiều consumer dựa trên threadCount
         List<Future<Void>> consumerFutures = IntStream.range(0, threadCount)
                 .mapToObj(i -> executorService.submit(createConsumer(readQueue, filter, writeQueue, processedLines, matchingCount)))
                 .toList();
 
         try {
-            // Wait for completion
+            // Đợi tất cả các task hoàn thành
             producerFuture.get();
             for (Future<Void> future : consumerFutures) {
                 future.get();
@@ -121,7 +122,7 @@ public class LogProcessor implements AutoCloseable{
             writerFuture.get();
 
         } catch (ExecutionException | InterruptedException e) {
-            // Cancel all running tasks
+            // Hủy các task
             producerFuture.cancel(true);
             consumerFutures.forEach(f -> f.cancel(true));
             writerFuture.cancel(true);

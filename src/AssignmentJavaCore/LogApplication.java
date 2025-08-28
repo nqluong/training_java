@@ -2,8 +2,6 @@ package AssignmentJavaCore;
 
 import AssignmentJavaCore.config.AppConfig;
 import AssignmentJavaCore.core.LogProcessor;
-import AssignmentJavaCore.exporters.LogExporter;
-import AssignmentJavaCore.exporters.TextLogExporter;
 import AssignmentJavaCore.filters.*;
 import AssignmentJavaCore.model.SearchCriteria;
 import AssignmentJavaCore.parsers.LogParser;
@@ -23,14 +21,12 @@ public class LogApplication {
 
     private static final String OUTPUT_DIR = "src/AssignmentJavaCore/output/";
     private LogProcessor processor;
-    private LogExporter exporter;
     private LogParser parser;
     private Scanner scanner;
 
     public LogApplication() {
         this.parser = new DefaultLogParser();
         this.processor = new LogProcessor(parser);
-        this.exporter = new TextLogExporter();
         this.scanner = new Scanner(System.in);
     }
 
@@ -255,7 +251,6 @@ public class LogApplication {
     private void cleanup() {
         try {
             processor.close();
-            exporter.close();
         } catch (Exception e) {
             System.err.println("Error during cleanup: " + e.getMessage());
         }

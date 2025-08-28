@@ -11,9 +11,6 @@ src/
 │   │   └── AppConfig.java
 │   ├── core/
 │   │   └── LogProcessor.java
-│   ├── exporters/
-│   │   ├── LogExporter.java
-│   │   └── TextLogExporter.java
 │   ├── filters/
 │   │   ├── DefaultLogFilter.java
 │   │   └── LogFilter.java
