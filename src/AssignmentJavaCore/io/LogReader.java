@@ -1,5 +1,7 @@
 package AssignmentJavaCore.io;
 
+import AssignmentJavaCore.exception.MyRuntimeException;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -28,7 +30,7 @@ public class LogReader implements Runnable{
             }
         } catch (IOException | InterruptedException e) {
             Thread.currentThread().interrupt();
-            throw new RuntimeException("Producer error", e);
+            throw new MyRuntimeException("Producer error", e);
         } finally {
             // Add poison pills for consumers
             for (int i = 0; i < consumerCount; i++) {

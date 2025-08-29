@@ -1,6 +1,7 @@
 package AssignmentJavaCore.io;
 
 import AssignmentJavaCore.config.AppConfig;
+import AssignmentJavaCore.exception.MyRuntimeException;
 
 import java.io.BufferedWriter;
 import java.io.IOException;
@@ -8,8 +9,9 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.Callable;
 
-public class LogWriter implements Runnable{
+public class LogWriter implements Callable<Void>, Runnable{
     private  BlockingQueue<String> queue;
     private  String outputPath;
     private  boolean append;
@@ -26,6 +28,15 @@ public class LogWriter implements Runnable{
 
     @Override
     public void run() {
+        try {
+            call();
+        } catch (Exception e) {
+            throw new MyRuntimeException("Writer operation failed");
+        }
+    }
+
+    @Override
+    public Void call() {
         StandardOpenOption[] options = append ? new StandardOpenOption[]{StandardOpenOption.CREATE, StandardOpenOption.APPEND}
                 : new StandardOpenOption[]{StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING};
         try (BufferedWriter writer = Files.newBufferedWriter(Paths.get(outputPath), options)) {
@@ -39,7 +50,8 @@ public class LogWriter implements Runnable{
             }
         } catch (IOException | InterruptedException e) {
             Thread.currentThread().interrupt();
-            throw new RuntimeException("Writer error", e);
+            throw new MyRuntimeException("Writer operation failed");
         }
+        return null;
     }
 }

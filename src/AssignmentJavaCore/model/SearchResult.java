@@ -5,15 +5,21 @@ public class SearchResult {
     private long executionTime;
     private long totalLinesProcessed;
     private long matchingCount;
+    private int threadCount;
 
-    public SearchResult(long executionTime, long totalLinesProcessed, long matchingCount) {
+    public SearchResult(long executionTime, long totalLinesProcessed, long matchingCount, int threadCount) {
         this.executionTime = executionTime;
         this.totalLinesProcessed = totalLinesProcessed;
         this.matchingCount = matchingCount;
+        this.threadCount = threadCount;
     }
 
     public long getExecutionTime() {
         return executionTime;
+    }
+
+    public int getThreadCount() {
+        return threadCount;
     }
 
     public long getTotalLinesProcessed() {
@@ -42,6 +48,7 @@ public class SearchResult {
                 "executionTime=" + executionTime +
                 ", totalLinesProcessed=" + totalLinesProcessed +
                 ", matchingCount=" + matchingCount +
+                ", threadCount=" + threadCount +
                 '}';
     }
 }

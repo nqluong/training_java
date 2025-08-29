@@ -105,7 +105,7 @@ public class LogApplication {
         LogFilter filter = new DefaultLogFilter(criteria);
 
         String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss"));
-        String outputFileName = "search_by_level_" + level.toLowerCase() + timestamp + ".txt";
+        String outputFileName = "search_by_level_" + level.toLowerCase() +"_"+ timestamp + ".txt";
         String fullOutputPath = OUTPUT_DIR + outputFileName;
 
         SearchResult result = processor.process(AppConfig.DEFAULT_LOG_PATH, filter, fullOutputPath);
@@ -234,6 +234,7 @@ public class LogApplication {
         System.out.println("Criteria: " + criteria);
         System.out.println("Matching entries found: " + result.getMatchingCount());
         System.out.println("Search execution time: " + result.getFormattedExecutionTime());
+        System.out.println("Thread count used: " + result.getThreadCount());
 
         if (result.getMatchingCount() == 0) {
             System.out.println("No matching log entries found.");
