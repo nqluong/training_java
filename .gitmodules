@@ -1,0 +1,3 @@
+[submodule "appointment_project"]
+	path = appointment_project
+	url = https://github.com/nqluong/appointment_project.git
