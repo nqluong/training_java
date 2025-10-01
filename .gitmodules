@@ -1,3 +1,6 @@
 [submodule "appointment_project"]
 	path = appointment_project
 	url = https://github.com/nqluong/appointment_project.git
+[submodule "appointment-microservice"]
+	path = appointment-microservice
+	url = https://github.com/nqluong/appointment-microservice.git
