@@ -1,3 +1,80 @@
+-- DROP PROCEDURE public.generate_slots_for_range(uuid, date, date);
+
+CREATE OR REPLACE PROCEDURE public.generate_slots_for_range(IN doctor_id uuid, IN start_date date, IN end_date date)
+ LANGUAGE plpgsql
+AS $procedure$
+DECLARE
+    d DATE;
+    schedule RECORD;
+    t_start TIME;
+    t_slot_end TIME;
+BEGIN
+    -- Lặp từng ngày trong khoảng
+    d := start_date;
+    WHILE d <= end_date LOOP
+        -- Xóa slot cũ chưa có appointment trong ngày
+        DELETE FROM doctor_available_slots s
+        WHERE s.doctor_user_id = doctor_id
+          AND s.slot_date = d;
+--          AND NOT EXISTS (
+--              SELECT 1 FROM appointments a WHERE a.slot_id = s.id
+--          );
+
+        -- Lấy schedule cho ngày d
+        SELECT *
+        INTO schedule
+        FROM doctor_schedules
+        WHERE doctor_user_id = doctor_id
+          AND day_of_week = EXTRACT(DOW FROM d)   -- mapping thứ
+          AND is_active = true
+        LIMIT 1;
+
+        -- Nếu có schedule thì tạo slot
+        IF FOUND THEN
+            t_start := schedule.start_time;
+            WHILE t_start < schedule.end_time LOOP
+                t_slot_end := t_start + (schedule.slot_duration || ' minutes')::interval;
+
+                IF t_slot_end <= schedule.end_time THEN
+                    INSERT INTO doctor_available_slots (
+                        doctor_user_id, slot_date, start_time, end_time,
+                        is_available, created_at, updated_at
+                    )
+                    VALUES (
+                        doctor_id, d, t_start, t_slot_end, true, now(), now()
+                    );
+                END IF;
+
+                -- Sang slot kế tiếp
+                t_start := t_slot_end + (schedule.break_duration || ' minutes')::interval;
+            END LOOP;
+        END IF;
+
+        -- Disable slot nào trùng lịch nghỉ
+        UPDATE doctor_available_slots s
+        SET is_available = false
+        FROM doctor_absences a
+        WHERE s.doctor_user_id = a.doctor_user_id
+          AND s.slot_date = a.absence_date
+          AND (
+               (a.start_time IS NULL AND a.end_time IS NULL)
+               OR (s.start_time >= a.start_time AND s.end_time <= a.end_time)
+          );
+
+        -- Update timestamp
+        UPDATE doctor_available_slots
+        SET updated_at = now()
+        WHERE doctor_user_id = doctor_id
+          AND slot_date = d;
+
+        -- Sang ngày tiếp theo
+        d := d + INTERVAL '1 day';
+    END LOOP;
+END;
+$procedure$
+;
+
+
 CREATE TABLE public.doctor_absences (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     doctor_user_id uuid NOT NULL,
