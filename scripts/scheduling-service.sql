@@ -149,3 +149,57 @@ ALTER TABLE ONLY public.doctor_available_slots
 
 CREATE INDEX doctor_schedules_slot_duration_idx ON public.doctor_schedules USING btree (slot_duration);
 
+
+ALTER TABLE doctor_available_slots 
+ADD COLUMN version BIGINT DEFAULT 0,
+ADD COLUMN reserved_by UUID,
+ADD COLUMN reserved_at TIMESTAMP;
+
+-- Tạo index cho optimistic locking
+CREATE INDEX idx_slot_version ON doctor_available_slots(id, version);
+
+-- Tạo table mới slot_reservations
+CREATE TABLE slot_reservations (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    slot_id UUID NOT NULL,
+    patient_id UUID NOT NULL,
+    idempotency_key VARCHAR(100) NOT NULL UNIQUE,
+    reserved_at TIMESTAMP NOT NULL,
+    expires_at TIMESTAMP NOT NULL,
+    active BOOLEAN NOT NULL DEFAULT true,
+    confirmed BOOLEAN NOT NULL DEFAULT false,
+    confirmed_at TIMESTAMP,
+    cancellation_reason VARCHAR(500),
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Indexes
+CREATE UNIQUE INDEX idx_idempotency_key ON slot_reservations(idempotency_key);
+CREATE INDEX idx_slot_active ON slot_reservations(slot_id, active);
+CREATE INDEX idx_expires_at ON slot_reservations(expires_at, active);
+CREATE INDEX idx_patient_active ON slot_reservations(patient_id, active);
+
+-- Foreign key (optional, nếu muốn referential integrity)
+ALTER TABLE slot_reservations 
+ADD CONSTRAINT fk_slot_reservations_slot 
+FOREIGN KEY (slot_id) REFERENCES doctor_available_slots(id) ON DELETE CASCADE;
+
+
+select *
+from doctor_available_slots das 
+where das.slot_date > now()
+
+select *
+from doctor_available_slots das inner join slot_reservations sr 
+on das.id = sr.slot_id 
+where das.id = 'fc54e626-1163-4c88-9e49-38f3426dbdaa'
+
+select * from doctor_available_slots das 
+where das.id = '599b9b05-cc0b-4487-a87b-300a0e6f6d2a'
+
+
+select 
+
+8d9a0088-597f-43fb-93bf-879e89be691f
+
+

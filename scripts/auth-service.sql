@@ -135,3 +135,9 @@ INSERT INTO public.roles (id,name,description,is_active,created_at,updated_at) V
 	 ('6e64fe22-a593-4c2e-9fad-9ae101a47e82'::uuid,'PATIENT','Bệnh nhân',true,'2025-09-15 01:56:07.998621','2025-09-15 01:56:07.998621');
 
 select count(*) from user
+
+
+
+select *
+from users u 
+where u.id = '8d9a0088-597f-43fb-93bf-879e89be691f'

@@ -87,3 +87,17 @@ ALTER TABLE ONLY public.user_profiles
 
 ALTER TABLE ONLY public.medical_profiles
     ADD CONSTRAINT fk_medical_profiles_specialty FOREIGN KEY (specialty_id) REFERENCES public.specialties(id) ON DELETE SET NULL;
+
+select * from user_profiles up 
+
+select mp.id , up.user_id as userId, 
+	up.first_name as firstName , up.last_name as lastName, mp.license_number as licenseNumber, s.id as specialtyId , s."name"  as specialtyName,
+	mp.qualification, mp.years_of_experience as yearsOfExperience , mp.consultation_fee , mp.bio , mp.is_doctor_approved 
+from user_profiles up 
+left join medical_profiles mp on mp.user_id  = up.user_id 
+left join specialties s on s.id = mp.specialty_id 
+where up.user_id = '6da17d26-e2b4-4bc0-97cf-44550f2377f1'
+
+
+select * 
+from medical_profiles mp inner join specialties s on mp.specialty_id = s.id 
